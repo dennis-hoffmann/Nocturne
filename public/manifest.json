@@ -1,0 +1,15 @@
+{
+  "name": "Kodi Nocturne",
+  "icons": [
+    {
+      "src": "/images/logo.png",
+      "type": "image/png",
+      "sizes": "325x325"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#3a3b3c",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#dc3545"
+}

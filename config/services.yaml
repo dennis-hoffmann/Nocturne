@@ -1,0 +1,118 @@
+imports:
+    - { resource: 'parameters.yml' }
+
+parameters:
+    discord.token: '%app.discord.token%'
+
+    mercure_secret_key: '%env(MERCURE_SECRET_KEY)%'
+    mercure.hub_url: '%app.mercure.hub_url%'
+
+    kodi.api.host: '%app.kodi.api.host%'
+    kodi.api.port: '%app.kodi.api.port%'
+    kodi.api.protocol: '%app.kodi.api.protocol%'
+    kodi.authentication.user: '%app.kodi.authentication.user%'
+    kodi.authentication.password: '%app.kodi.authentication.password%'
+    kodi.substitution.pattern: '%app.kodi.substitution.pattern%'
+    kodi.substitution.replacement: '%app.kodi.substitution.replacement%'
+    kodi.web_socket.url: '%app.kodi.web_socket.url%'
+    kodi.config_override: '%app.kodi.config_override%'
+
+    song.indexer.enable_locale_file_filter: '%app.song.indexer.enable_locale_file_filter%'
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        bind:
+            $uploadBaseDir: '%app.file_uploads.base_dir%'
+
+    # Logging
+    Symfony\Bridge\Monolog\Handler\ElasticsearchLogstashHandler:
+        autowire: false
+        arguments:
+            - 'http://%env(resolve:ELASTICSEARCH_URL)%'
+            - 'monolog'
+            - ~
+
+
+    Symfony\Bridge\Monolog\Processor\DebugProcessor:
+        tags:
+            - { name: monolog.processor, handler: es }
+
+    Symfony\Bridge\Monolog\Processor\ConsoleCommandProcessor:
+        tags:
+            - { name: monolog.processor, handler: es }
+
+    Symfony\Bridge\Monolog\Processor\WebProcessor:
+        tags:
+            - { name: monolog.processor, handler: es }
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/*'
+        exclude: '../src/{DependencyInjection,Entity,Migrations,Tests,Kernel.php}'
+
+    # controllers are imported separately to make sure services can be injected
+    # as action arguments even if you don't extend any base controller class
+    App\Controller\:
+        resource: '../src/Controller'
+        tags: ['controller.service_arguments']
+        calls:
+            - ['setContainer', ['@service_container']]
+
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+    App\Http\Kodi:
+        public: true
+        arguments:
+            - '@cache.app'
+            - '%kodi.api.protocol%'
+            - '%kodi.api.host%'
+            - '%kodi.api.port%'
+            - '%kodi.authentication.user%'
+            - '%kodi.authentication.password%'
+            - '%kodi.config_override%'
+
+    App\Service\Mercure:
+        public: true
+        arguments:
+            - '@security.helper'
+            - '%mercure_secret_key%'
+            - '%mercure.hub_url%'
+
+    App\Command\WebSocketClientCommand:
+        public: true
+        arguments:
+            - 'ws:client'
+            - '%kodi.web_socket.url%'
+
+    App\Command\DiscordGatewayCommand:
+        public: true
+        arguments:
+            - '%discord.token%'
+
+    App\Filter\LocalFilePathFilter:
+        public: true
+        arguments:
+            - '%song.indexer.enable_locale_file_filter%'
+            - '%kodi.substitution.pattern%'
+            - '%kodi.substitution.replacement%'
+
+    # EventListeners
+    App\EventListener\UserJwtTokenProvider:
+        arguments:
+            - '@request_stack'
+            - '@App\Service\Mercure'
+        tags:
+            - { name: 'kernel.event_listener', event: 'kernel.response', method: 'onKernelResponse', priority: -150}
+
+    # Twig Extensions
+    App\Twig\MercureExtension:
+        arguments:
+            - '%mercure.hub_url%'
+            - '@App\Service\Mercure'
+        tags:
+            - { name: 'twig.extension' }

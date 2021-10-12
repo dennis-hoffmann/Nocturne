@@ -1,0 +1,67 @@
+label {
+  color: #FFFFFF;
+}
+
+input[type='checkbox'] {
+  + label::before {
+    content: '\e900';
+  }
+}
+
+input[type='checkbox'] {
+  position: absolute !important;
+  opacity: 0;
+  margin: 0;
+
+  + label {
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding-left: 30px;
+    cursor: pointer;
+    margin-left: 14px;
+
+    @include desktop {
+      margin-left: 22px;
+    }
+
+    // Safari
+    @media not all and (min-resolution: 0.001dpcm) {
+      align-items: flex-start;
+    }
+
+    &::before {
+      left: 0;
+      position: absolute;
+      outline-width: 0;
+      height: 17px;
+      width: 17px;
+      border: 1px solid #3a3b3c;
+      background: #d1d1d1;
+      color: #dc3545;
+      font-size: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      transition: font-size 0.2s ease-in-out;
+      font-family: "Nocturne";
+    }
+  }
+
+  &:checked + label::before {
+    font-size: 15px;
+  }
+
+  &.disabled,
+  &.disabled:focus,
+  &.disabled:hover,
+  &:disabled,
+  &:disabled:focus,
+  &:disabled:hover {
+    + label {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+  }
+}

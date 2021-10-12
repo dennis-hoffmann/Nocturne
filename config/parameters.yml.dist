@@ -1,0 +1,21 @@
+parameters:
+    app.discord.token: 'changeMe'
+
+    app.file_uploads.base_dir: '%kernel.project_dir%/public/uploads'
+
+    app.kodi.api.host: 'localhost'
+    app.kodi.api.port: 8080
+    app.kodi.api.protocol: 'http'
+    app.kodi.authentication.user: 'changeMe'
+    app.kodi.authentication.password: 'changeMe'
+    app.kodi.substitution.pattern: '/media/music'
+    app.kodi.substitution.replacement: '/Musik'
+    app.kodi.web_socket.url: 'localhost:9090/jsonrpc'
+    app.kodi.config_override:
+        media_source_path: '/home/dhoffmann/Test'
+
+    app.mercure.hub_url: 'http://localhost:3000/.well-known/mercure'
+
+    app.redis.url: redis://redis:6379
+
+    app.song.indexer.enable_locale_file_filter: false

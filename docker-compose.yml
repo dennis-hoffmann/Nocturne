@@ -1,0 +1,100 @@
+version: '2.1'
+networks:
+    elastic:
+        driver: bridge
+
+volumes:
+    elasticdata:
+        driver: local
+
+services:
+    apache:
+        build:
+            context: ./docker/apache
+        volumes:
+            - ./:/var/www/html:cached
+        ports:
+            - "80:80"
+            - "8080:8080"
+        networks:
+            - elastic
+    supervisor:
+        build:
+            context: ./docker/supervisor
+        volumes:
+            - ./:/var/www/html:cached
+        ports:
+            - "9001:9001"
+            - "3000:3000"
+        networks:
+            - elastic
+    redis:
+        image: redis:5-alpine
+        hostname: redis
+        ports:
+            - "6379:6379"
+        volumes:
+            - ./data/redis:/data/redis
+        networks:
+            - elastic
+
+    rabbitmq:
+        image: rabbitmq:3-management-alpine
+        ports:
+            - "15672:15672"
+            - "5672:5672"
+            - "5671:5671"
+        networks:
+            - elastic
+
+    elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:6.8.0
+        container_name: elasticsearch
+        command: >
+            /bin/sh -c "./bin/elasticsearch-plugin list | grep -q analysis-kuromoji
+            || ./bin/elasticsearch-plugin install analysis-kuromoji;
+            /usr/local/bin/docker-entrypoint.sh"
+        environment:
+            - node.name=elasticsearch
+            - bootstrap.memory_lock=true
+            - cluster.routing.allocation.disk.threshold_enabled=false
+            - cluster.routing.allocation.disk.watermark.flood_stage=99%
+            - cluster.routing.allocation.disk.watermark.high=99%
+            - cluster.name=es-docker-cluster
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+        volumes:
+            - elasticdata:/usr/share/elasticsearch/data
+        ports:
+            - 9200:9200
+        networks:
+            - elastic
+
+    kibana:
+        image: docker.elastic.co/kibana/kibana:6.8.0
+        container_name: kibana
+        ports:
+            - 5601:5601
+        environment:
+            ELASTICSEARCH_URL: http://elasticsearch:9200
+            ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+        networks:
+            - elastic
+
+    mysql:
+        image: mysql:8
+        ports:
+            - '3306:3306'
+        environment:
+            MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+            MYSQL_DATABASE: $MYSQL_DATABASE
+            MYSQL_USER: $MYSQL_USER
+            MYSQL_PASSWORD: $MYSQL_PASSWORD
+            TZ: Europe/Berlin
+        volumes:
+            - ./docker/mysql/files:/mysql_files
+        networks:
+            - elastic

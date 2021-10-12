@@ -1,0 +1,2 @@
+# DEV
+JWT_KEY='!ChangeMe!' ADDR=':3000' DEMO=1 ALLOW_ANONYMOUS=1 CORS_ALLOWED_ORIGINS='http://kodi-nocturne.local' PUBLISH_ALLOWED_ORIGINS='*' /var/www/html/mercure --subscriptions --debug

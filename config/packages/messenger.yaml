@@ -1,0 +1,16 @@
+framework:
+    messenger:
+        # Uncomment this (and the failed transport below) to send failed messages to this transport for later handling.
+        # failure_transport: failed
+
+        transports:
+            async: '%env(MESSENGER_TRANSPORT_DSN)%'
+            # failed: 'doctrine://default?queue_name=failed'
+            sync: 'sync://'
+
+        routing:
+            'Symfony\Component\Mercure\Update': async
+            'App\Message\WebSocketNotification': async
+            'App\Message\PlaylistReindexNotification': async
+            'App\Message\KodiAudioLibraryUpdateNotification': async
+            'App\Message\AudioWaveformGenerateNotification': async

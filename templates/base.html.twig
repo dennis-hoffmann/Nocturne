@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+        <link id="favicon" rel="icon" type="image/png" sizes="256x256" href="{{ asset('images/logo.png') }}">
+        <link rel="manifest" href="/manifest.json">
+        <title>{% block title %}Kodi-Nocturne{% endblock %}</title>
+        {% block stylesheets %}
+        {% endblock %}
+    </head>
+    <body class="sidebar">
+        {% block body %}{% endblock %}
+        <script type="application/javascript">
+            const mercureHub = '{{ mercure_hub_url() }}';
+            const mercureTopics = {{ mercure_topics()|raw }}
+        </script>
+        {% block javascripts %}
+        {% endblock %}
+    </body>
+</html>
